@@ -2,6 +2,7 @@
 #include "tiger/semant/semant.h"
 #include <iostream>
 #include <stack>
+#include <vector>
 std::stack<bool> inloop;
 namespace absyn {
 
@@ -505,12 +506,23 @@ void TypeDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
     if(typeid(*ty)==typeid(type::NameTy)){
       ty=((type::NameTy*)ty)->ty_;
     }
+    std::vector<std::string> tyname;
     while(typeid(*ty)==typeid(type::NameTy)){
+        for(int i=0;i<tyname.size();i++){
+          if(tyname[i]==((type::NameTy*)ty)->sym_->Name())
+          {
+          has_circle=true;
+          errormsg->Error(this->pos_,"illegal type cycle");
+          break;
+          }
+        }
+        if(has_circle) break;
         if(((type::NameTy*)ty)->sym_->Name()==it->name_->Name()){
           has_circle=true;
           errormsg->Error(this->pos_,"illegal type cycle");
           break;
         }
+        tyname.push_back(((type::NameTy*)ty)->sym_->Name());
         ty=((type::NameTy*)ty)->ty_;
     }
     //type::Ty* name_ty=tenv->Look(it->name_);

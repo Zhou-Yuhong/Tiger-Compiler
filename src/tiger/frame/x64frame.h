@@ -10,6 +10,17 @@
 namespace frame {
 class X64RegManager : public RegManager {
   /* TODO: Put your lab5 code here */
+public:
+  temp::TempList *Registers(){}
+  temp::TempList *ArgRegs(){}
+  temp::TempList *CallerSaves(){}  
+  temp::TempList *CalleeSaves(){}
+  temp::TempList *ReturnSink(){}
+  int WordSize(){}
+  temp::Temp *FramePointer(){}
+  temp::Temp *StackPointer(){}
+  temp::Temp *ReturnValue(){}
+  
 };
 
 } // namespace frame

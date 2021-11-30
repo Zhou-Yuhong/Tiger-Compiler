@@ -42,6 +42,11 @@ public:
    */
   void Translate();
 
+  //temp 
+  ProgTr( std::unique_ptr<absyn::AbsynTree> absyn_tree,  std::unique_ptr<err::ErrorMsg> errmsg){
+
+  }
+
   /**
    * Transfer the ownership of errormsg to outer scope
    * @return unique pointer to errormsg
@@ -49,6 +54,7 @@ public:
   std::unique_ptr<err::ErrorMsg> TransferErrormsg() {
     return std::move(errormsg_);
   }
+
 
 
 private:

@@ -411,20 +411,24 @@ void FunctionDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
       type::Ty* ty;
       std::list<type::Ty*> result;
       for(const auto& it:fields){
-      ty=tenv->Look(it->typ_);
-      if(!ty){
-       errormsg->Error(it->pos_,"undefined type %s",it->typ_->Name().c_str());
+        ty=tenv->Look(it->typ_);
+        if(!ty){
+        errormsg->Error(it->pos_,"undefined type %s",it->typ_->Name().c_str());
+        }
+        result.push_back(ty);
       }
-      result.push_front(ty);
+      tylist=new type::TyList();
+      for(auto it:result){
+        tylist->Append(it);
       }
-      std::reverse_iterator<std::list<type::Ty*>::iterator> reiter(result.end());
-      tylist = new type::TyList(*reiter);
-      reiter++;
-      while (reiter!=result.rend())
-      {
-        tylist->Append(*reiter);
-        reiter++;
-      }
+      // std::reverse_iterator<std::list<type::Ty*>::iterator> reiter(result.end());
+      // tylist = new type::TyList(*reiter);
+      // reiter++;
+      // while (reiter!=result.rend())
+      // {
+      //   tylist->Append(*reiter);
+      //   reiter++;
+      // }
       
       // tylist = new type::TyList(result);
     }

@@ -17,7 +17,7 @@ public:
 };
 tree::Exp* externalCall(std::string s,tree::ExpList* explist);
 tree::Stm* F_procEntryExit1(frame::Frame *frame,tree::Stm* stm);
-assem::Proc* procEntryExit3(frame::Frame *frame_,assem::InstrList *body);
+assem::Proc* ProcEntryExit3(frame::Frame *frame_,assem::InstrList *body);
 class InRegAccess : public Access {
 public:
   temp::Temp *reg;
@@ -32,7 +32,7 @@ public:
   static const int wordSize=8;
   static Frame* newFrame(temp::Label *name,std::list<bool> list,frame::RegManager* regmanager){
     frame::Frame* frame_=new X64Frame();
-    frame_->name=name;
+    frame_->name_=name;
     frame_->offset=-wordSize;
     //form the formals
     for(auto it:list){
@@ -81,12 +81,24 @@ public:
         break;
       case 5:
         stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R9()));
-        break;          
+        break; 
+      case 6:
+        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R10()));
+        break; 
+      case 7:
+        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R11()));
+        break; 
+      case 8:
+        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R12()));
+        break;             
       default:
       //the argument passed in frame
         posOffset = (count-5)*frame::X64Frame::wordSize;
         //should add the size of frame in the pro3
-        stm = new tree::MoveStm(dst,new tree::BinopExp(tree::BinOp::PLUS_OP,new tree::TempExp(regmanager->FramePointer()),new tree::ConstExp(posOffset)));
+        stm = new tree::MoveStm(dst,new tree::MemExp(
+          new tree::BinopExp(tree::BinOp::PLUS_OP,new tree::TempExp(regmanager->FramePointer()),new tree::ConstExp(posOffset))
+          )
+        );
         break;
       }
       // stmList.push_back(stm);

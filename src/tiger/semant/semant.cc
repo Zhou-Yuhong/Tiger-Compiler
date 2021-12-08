@@ -94,14 +94,6 @@ type::Ty *CallExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
   type::Ty *result = ((env::FunEntry *)func)->result_;
   std::list<type::Ty *> ty_list= formals->GetList(); //needed args
   std::list<Exp *> exp_list = this->args_->GetList(); //real args
-  // if(ty_list.size()>exp_list.size()){
-  //   errormsg->Error(this->pos_,"too many params in function %s",this->func_->Name().c_str());
-  //   return type::VoidTy::Instance();
-  // } 
-  // if(ty_list.size()<exp_list.size()){
-  //   errormsg->Error(this->pos_,"too little params in function %s",this->func_->Name().c_str());
-  //   return type::VoidTy::Instance();
-  // } 
   auto it=ty_list.begin();
   auto that=exp_list.begin();
   while(it!=ty_list.end()){
@@ -110,8 +102,8 @@ type::Ty *CallExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
       return type::VoidTy::Instance();
     }
     type::Ty*exp_ty=(*that)->SemAnalyze(venv,tenv,labelcount,errormsg);
-    // if(!(*it)->IsSameType(exp_ty)){
-      if(typeid(**it)!=typeid(*exp_ty)){
+    if(!(*it)->IsSameType(exp_ty)){
+      // if(typeid(**it)!=typeid(*exp_ty)){
       errormsg->Error((*that)->pos_,"para type mismatch");
       return type::VoidTy::Instance();
     }
@@ -123,15 +115,6 @@ type::Ty *CallExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
     return type::VoidTy::Instance();
   }
   return ((env::FunEntry*)func)->result_->ActualTy();
-  // for(int i=0;i<ty_list.size();i++){
-  //   type::Ty *ty=ty_list[i];
-  //   Exp * exp = exp_list[i];
-  //   type::Ty *exp_ty=exp->SemAnalyze(venv,tenv,labelcount,errormsg);
-  //   if(!ty->IsSameType(exp_ty)){
-  //     errormsg->Error(this->pos_,"para type mismatch");
-  //     return NULL;
-  //   }
-  // }
 }
 
 type::Ty *OpExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
@@ -243,22 +226,24 @@ type::Ty *SeqExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
 
 type::Ty *AssignExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
                                 int labelcount, err::ErrorMsg *errormsg) const {
-   if(typeid(*(this->var_))==typeid(absyn::SimpleVar)){
-     env::EnvEntry* entry = venv->Look(((absyn::SimpleVar*)this->var_)->sym_);
-     if(entry){
-       if(entry->readonly_){
-       errormsg->Error(this->pos_,"loop variable can't be assigned");
-       return type::VoidTy::Instance();
-       }
-     }
-   }
-   absyn::Var* var=this->var_;
-   absyn::Exp* exp=this->exp_;
-   if(!var->SemAnalyze(venv,tenv,labelcount,errormsg)->IsSameType(exp->SemAnalyze(venv,tenv,labelcount,errormsg))){
-     errormsg->Error(this->pos_,"unmatched assign exp");
-     return type::VoidTy::Instance();
-   }
-   return var->SemAnalyze(venv,tenv,labelcount,errormsg);
+    type::Ty* varType = this->var_->SemAnalyze(venv,tenv,labelcount,errormsg);
+    type::Ty* expType = this->exp_->SemAnalyze(venv,tenv,labelcount,errormsg);
+    if(typeid(*var_)==typeid(absyn::SimpleVar)){
+      sym::Symbol *sym = (static_cast<SimpleVar*>(var_))->sym_;
+      env::EnvEntry *entry = venv->Look(sym);
+      env::VarEntry *varEntry = static_cast<env::VarEntry*>(entry);
+      if(varEntry->readonly_){
+        errormsg->Error(var_->pos_, "loop variable can't be assigned");
+        return type::VoidTy::Instance();
+      }
+    }
+    if(varType->IsSameType(expType)){
+      return type::VoidTy::Instance();
+    }
+    else{
+      errormsg->Error(pos_, "unmatched assign exp");
+      return type::VoidTy::Instance();
+    }
 }
 
 type::Ty *IfExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
@@ -277,15 +262,11 @@ type::Ty *IfExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
     return type::VoidTy::Instance();
   }
   
-  // if(!this->then_->SemAnalyze(venv,tenv,labelcount,errormsg)->IsSameType(this->elsee_->SemAnalyze(venv,tenv,labelcount,errormsg))){
-  //   errormsg->Error(this->pos_,"then exp and else exp type mismatch");
-  //   return type::VoidTy::Instance();
-  // }
       type::Ty * then_ty=this->then_->SemAnalyze(venv,tenv,labelcount,errormsg)->ActualTy();
   
       type::Ty * else_ty=this->elsee_->SemAnalyze(venv,tenv,labelcount,errormsg)->ActualTy();
 
-      if(typeid(*then_ty)!=typeid(*else_ty)){
+      if(!then_ty->IsSameType(else_ty)){
           errormsg->Error(this->pos_,"then exp and else exp type mismatch");
           return type::VoidTy::Instance();
       }

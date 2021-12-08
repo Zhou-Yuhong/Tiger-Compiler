@@ -1,5 +1,5 @@
 #include "tiger/frame/x64frame.h"
-
+#include <sstream>
 extern frame::RegManager *reg_manager;
 
 namespace frame {
@@ -115,7 +115,7 @@ namespace frame {
     this->inputMap(R11(),"%r11");
     this->inputMap(R12(),"%r12");
     this->inputMap(R13(),"%r13");
-    this->inputMap(R14()."%r14");
+    this->inputMap(R14(),"%r14");
     this->inputMap(R15(),"%r15");
 
     // std::string sRax="rax";
@@ -257,9 +257,9 @@ tree::Stm* F_procEntryExit1(frame::Frame *frame,tree::Stm* stm){
   }
   return result;
 }
-assem::Proc* procEntryExit3(frame::Frame *frame_,assem::InstrList *body){
-  std::string prologue = frame_->name->Name()+":\n";
-  prologue += ".set "+frame_->name->Name()+"_framesize, "+std::to_string(-frame_->offset)+"\n";
+assem::Proc* ProcEntryExit3(frame::Frame *frame_,assem::InstrList *body){
+  std::string prologue = frame_->name_->Name()+":\n";
+  prologue += ".set "+frame_->name_->Name()+"_framesize, "+std::to_string(-frame_->offset)+"\n";
   prologue += "subq $"+ std::to_string(-frame_->offset)+", %rsp\n";
   std::string epilog = "addq $"+std::to_string(-frame_->offset)+", %rsp\n";
   epilog += "retq\n";

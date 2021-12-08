@@ -91,6 +91,7 @@ tree::MemExp* formMemInstruction(tree::Exp* base,int offset);
 Exp* emptyExp();
 
 Exp *simpleVar(Access* access,Level *level);
+tr::Exp* ifExp(tr::Exp *test,tr::Exp* then,tr::Exp* elsee);
 //helpful function in CallExp's translate
 tr::Exp *funCall(temp::Label *label,std::list<tr::Exp *> args,tr::Level* caller,tr::Level* callee);
 tr::Exp* translateSeq(tr::Exp* left,tr::Exp* right);

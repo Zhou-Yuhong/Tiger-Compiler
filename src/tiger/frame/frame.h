@@ -109,19 +109,21 @@ public:
       this->kind=kind;
     } 
     virtual ~Access() = default;
-  
 };
 
 class Frame {
   /* TODO: Put your lab5 code here */
   public:
-  temp::Label* name;
+  temp::Label* name_;
   std::list<frame::Access*> formals;
   std::list<frame::Access*> locals;
   tree::StmList *viewShift;
   int offset;
   std::list<frame::Access*> getFormals(){
     return this->formals;
+  }
+  std::string GetLabel(){
+    return this->name_->Name();
   }
   virtual frame::Access *allocLocal(bool escape) = 0;
 };

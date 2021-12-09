@@ -395,6 +395,7 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
   tr::ExpAndTy* transLeft=this->left_->Translate(venv,tenv,level,label,errormsg);
   tr::ExpAndTy* transRight=this->right_->Translate(venv,tenv,level,label,errormsg);
   tree::CjumpStm* stm;
+  tree::ExpList* explist;
   tr::Exp* exp;
   switch (this->oper_)
   {
@@ -440,7 +441,15 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
       stm = new tree::CjumpStm(tree::GE_OP,transLeft->exp_->UnEx(),transRight->exp_->UnEx(),NULL,NULL);
       break;  
     case absyn::Oper::EQ_OP:
-      stm = new tree::CjumpStm(tree::EQ_OP,transLeft->exp_->UnEx(),transRight->exp_->UnEx(),NULL,NULL);
+      if(transLeft->ty_->IsSameType(type::StringTy::Instance())){
+        explist = new tree::ExpList();
+        explist->Append(transLeft->exp_->UnEx());
+        explist->Append(transRight->exp_->UnEx());
+        stm = new tree::CjumpStm(tree::EQ_OP,frame::externalCall("string_equal",explist),new tree::ConstExp(1),NULL,NULL);
+      }
+      else{
+        stm = new tree::CjumpStm(tree::EQ_OP,transLeft->exp_->UnEx(),transRight->exp_->UnEx(),NULL,NULL);
+      }
       break;
     case absyn::Oper::NEQ_OP:
       stm = new tree::CjumpStm(tree::NE_OP,transLeft->exp_->UnEx(),transRight->exp_->UnEx(),NULL,NULL);

@@ -2,13 +2,8 @@
 
 #include <cassert>
 #include <sstream>
+#include <stack>
 int orderCount=0;
-int formOrder=0;
-void debug(){
-  if(formOrder==10){
-    int target=1;
-  }
-}
 extern frame::RegManager *reg_manager;
 
 namespace {
@@ -60,9 +55,7 @@ void SeqStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
 void LabelStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
   /* TODO: Put your lab5 code here */
   assem::LabelInstr* instr = new assem::LabelInstr(this->label_->Name(),this->label_);
-  debug();
   instr_list.Append(instr);
-  formOrder++;
 }
 
 void JumpStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
@@ -71,7 +64,6 @@ void JumpStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
     "jmp `j0",nullptr,nullptr,new assem::Targets(this->jumps_)
   );
   instr_list.Append(instr);
-  formOrder++;
 }
 
 void CjumpStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
@@ -83,9 +75,7 @@ void CjumpStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
   srcList->Append(rightT);
   srcList->Append(leftT);
   assem::OperInstr *cmp= new assem::OperInstr("cmpq `s0,`s1",nullptr,srcList,nullptr);
-  debug();
   instr_list.Append(cmp);
-  formOrder++;
   //cjump instr
   std::string str;
   switch (this->op_)
@@ -118,9 +108,7 @@ void CjumpStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
   assem::OperInstr *cjmp=new assem::OperInstr(
     str+" `j0",nullptr,nullptr,targets
   );
-  debug();
   instr_list.Append(cjmp);
-  formOrder++;
 
 }
 
@@ -135,9 +123,7 @@ void MoveStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
     assem::MoveInstr* movestr=new assem::MoveInstr(
     "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
     );  
-    debug();
     instr_list.Append(movestr);
-    formOrder++;
     return;
   }
   else{
@@ -148,9 +134,7 @@ void MoveStm::Munch(assem::InstrList &instr_list, std::string_view fs) {
     srcs.push_back(src);
     srcs.push_back(src2);
     assem::OperInstr* oper=new assem::OperInstr("movq `s0, (`s1)",nullptr,cg::makeTempList(srcs),nullptr);
-     debug();
     instr_list.Append(oper);
-    formOrder++;
     return;
   }
 }
@@ -181,9 +165,7 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
       cg::makeTempList(dsts),
       cg::makeTempList(srcs)
     );
-     debug();
     instr_list.Append(moveInstr);
-    formOrder++;
     dsts.clear();
     srcs.clear();
     dsts.push_back(reg);
@@ -194,9 +176,7 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
       cg::makeTempList(dsts),
       cg::makeTempList(srcs),nullptr
     );
-     debug();
     instr_list.Append(operInstr);
-    formOrder++;
     break;
   case tree::MINUS_OP:
     dsts.push_back(reg);
@@ -206,9 +186,7 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
       cg::makeTempList(dsts),
       cg::makeTempList(srcs)
     );
-     debug();
     instr_list.Append(moveInstr);
-    formOrder++;
     dsts.clear();
     srcs.clear();
     dsts.push_back(reg);
@@ -219,93 +197,75 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
       cg::makeTempList(dsts),
       cg::makeTempList(srcs),nullptr
     );
-     debug();
     instr_list.Append(operInstr);
-    formOrder++;
     break;
   case tree::MUL_OP:
    dsts.push_back(reg_manager->RAX());
     srcs.push_back(left);
-     debug();
     instr_list.Append(
       new assem::MoveInstr(
         "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
       )
     );
-    formOrder++;
     dsts.clear();
     srcs.clear();
-     debug();
     instr_list.Append(
       new assem::OperInstr(
         "cqto",nullptr,nullptr,nullptr
       )
     );
-    formOrder++;
     dsts.push_back(reg_manager->RAX());
     srcs.push_back(right);
-     debug();
     instr_list.Append(
       new assem::OperInstr(
         "imulq `s0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
       )
     );
-    formOrder++;
     dsts.clear();
     srcs.clear();
     //store the result
     dsts.push_back(reg);
     srcs.push_back(reg_manager->RAX());
-     debug();
     instr_list.Append(
       new assem::MoveInstr(
         "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
       )
     );
-    formOrder++;
     break;
   case tree::DIV_OP:
     //special 
     //first move the dividend into rax
     dsts.push_back(reg_manager->RAX());
     srcs.push_back(left);
-     debug();
     instr_list.Append(
       new assem::MoveInstr(
         "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
       )
     );
-    formOrder++;
     dsts.clear();
     srcs.clear();
-     debug();
     instr_list.Append(
       new assem::OperInstr(
         "cqto",nullptr,nullptr,nullptr
       )
     );
-    formOrder++;
     dsts.push_back(reg_manager->RAX());
     srcs.push_back(right);
-     debug();
     instr_list.Append(
       new assem::OperInstr(
         "idivq `s0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
       )
     );
-    formOrder++;
     dsts.clear();
     srcs.clear();
     //store the result
     dsts.push_back(reg);
     srcs.push_back(reg_manager->RAX());
-     debug();
     instr_list.Append(
       new assem::MoveInstr(
         "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
       )
     );
-    formOrder++;
     break;
   default:
     break;
@@ -321,13 +281,11 @@ temp::Temp *MemExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
   std::vector<temp::Temp*> dsts;
   temp::Temp *dst = temp::TempFactory::NewTemp();
   dsts.push_back(dst);
-   debug();
   instr_list.Append(
     new assem::OperInstr(
       "movq (`s0), `d0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
     )
   );
-  formOrder++;
   return dst;
 }
 
@@ -346,13 +304,11 @@ temp::Temp *TempExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
     std::vector<temp::Temp*> dsts;
     srcs.push_back(reg_manager->StackPointer());
     dsts.push_back(reg);
-     debug();
     instr_list.Append(
       new assem::OperInstr(
         assemStr,cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
       )
     );
-    formOrder++;
     return reg;
   }
 }
@@ -370,13 +326,11 @@ temp::Temp *NameExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
   std::vector<temp::Temp*> dsts;
   temp::Temp* reg=temp::TempFactory::NewTemp();
   dsts.push_back(reg);
-   debug();
   instr_list.Append(
     new assem::OperInstr(
       assemStr,cg::makeTempList(dsts),nullptr,nullptr
     )
   );
-  formOrder++;
   return reg;
 }
 
@@ -386,13 +340,11 @@ temp::Temp *ConstExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
   std::string assemStr="movq $"+std::to_string(this->consti_)+", `d0";
   std::vector<temp::Temp*> dsts;
   dsts.push_back(reg);
-   debug();
   instr_list.Append(
     new assem::OperInstr(
       assemStr,cg::makeTempList(dsts),nullptr,nullptr
     )
   );
-  formOrder++;
   return reg;
 }
 
@@ -401,22 +353,29 @@ temp::Temp *CallExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
   temp::Temp* reg=temp::TempFactory::NewTemp();
   temp::TempList* arglist=this->args_->MunchArgs(instr_list,fs);
   std::string assemStr = "callq "+((tree::NameExp*)this->fun_)->name_->Name();
-  debug();
   assem::OperInstr *oper=new assem::OperInstr(
       assemStr,nullptr,arglist,nullptr
     );
   instr_list.Append(oper);
-  formOrder++;
   std::vector<temp::Temp*> srcs;
   std::vector<temp::Temp*> dsts;
+  //collect the space that alloc to the args
+  int size = arglist->GetList().size();
+  if(size>6){
+    int offset = (size-6)*8;
+    dsts.push_back(reg_manager->StackPointer());
+    instr_list.Append(new assem::OperInstr(
+      "addq $"+std::to_string(offset)+", `d0",cg::makeTempList(dsts),
+      nullptr,nullptr
+    ));
+    dsts.clear();
+  }
   dsts.push_back(reg);
   srcs.push_back(reg_manager->ReturnValue());
-  debug();
   assem::OperInstr *oper2=new assem::OperInstr(
     "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
   );
   instr_list.Append(oper2);
-  formOrder++;
   return reg;
 }
 
@@ -427,126 +386,104 @@ temp::TempList *ExpList::MunchArgs(assem::InstrList &instr_list, std::string_vie
   int count=0;
   std::vector<temp::Temp*> srcs;
   std::vector<temp::Temp*> dsts;
+  std::stack<temp::Temp*> argsInStack;
   temp::TempList* result=new temp::TempList();
   for(auto it:explist){
     temp::Temp* item=it->Munch(instr_list,fs);
-    srcs.push_back(item);
     switch (count)
     {
     case 0:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->RDI());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break;
     case 1:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->RSI());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break;
     case 2:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->RDX());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break;
     case 3:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->RCX());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break;  
     case 4:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->R8());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break; 
     case 5:
+      srcs.push_back(item);
       dsts.push_back(reg_manager->R9());
-       debug();
       instr_list.Append(
         new assem::MoveInstr(
           "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
         )
       );
-      formOrder++;
+      srcs.clear();
       dsts.clear();
       break;   
-    //TODO change to stack args
-    case 6:
-      dsts.push_back(reg_manager->R10());
-       debug();
-      instr_list.Append(
-        new assem::MoveInstr(
-          "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
-        )
-      );
-      formOrder++;
-      dsts.clear();
-      break; 
-    case 7:
-      dsts.push_back(reg_manager->R11());
-      debug();
-      instr_list.Append(
-        new assem::MoveInstr(
-          "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
-        )
-      );
-      formOrder++;
-      dsts.clear();
-      break;
-    case 8:
-      dsts.push_back(reg_manager->R12());
-      debug();
-      instr_list.Append(
-        new assem::MoveInstr(
-          "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
-        )
-      );
-      formOrder++;
-      dsts.clear();
-    break;               
+    //TODO change to stack args             
     default:
-     debug();
-       instr_list.Append(
-         new assem::OperInstr(
-           "pushq `s0",nullptr,cg::makeTempList(srcs),nullptr
-         )
-       );    
-       formOrder++;
+    argsInStack.push(item);  
       break;
     }
-     srcs.clear();
      count++;
      result->Append(item);
   }
+  //put the argInstack Into stack
+  while (!argsInStack.empty())
+  {
+    temp::Temp* arg = argsInStack.top();
+    dsts.push_back(reg_manager->StackPointer());
+    instr_list.Append(new assem::OperInstr(
+      "subq $8, `d0",cg::makeTempList(dsts),nullptr,nullptr
+    ));
+    dsts.clear();
+    srcs.push_back(arg);
+    srcs.push_back(reg_manager->StackPointer());
+    instr_list.Append(new assem::OperInstr(
+      "movq `s0, (`s1)",nullptr,cg::makeTempList(srcs),nullptr
+    ));
+    srcs.clear();
+    argsInStack.pop();
+  }
+  
   return result;
 }
 

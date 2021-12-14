@@ -81,19 +81,10 @@ public:
         break;
       case 5:
         stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R9()));
-        break; 
-      case 6:
-        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R10()));
-        break; 
-      case 7:
-        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R11()));
-        break; 
-      case 8:
-        stm = new tree::MoveStm(dst,new tree::TempExp(regmanager->R12()));
-        break;             
+        break;     
       default:
       //the argument passed in frame
-        posOffset = (count-5)*frame::X64Frame::wordSize;
+        posOffset = (count-6)*frame::X64Frame::wordSize;
         //should add the size of frame in the pro3
         stm = new tree::MoveStm(dst,new tree::MemExp(
           new tree::BinopExp(tree::BinOp::PLUS_OP,new tree::TempExp(regmanager->FramePointer()),new tree::ConstExp(posOffset))

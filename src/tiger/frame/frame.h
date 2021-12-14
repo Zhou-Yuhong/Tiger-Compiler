@@ -63,6 +63,38 @@ public:
 
   [[nodiscard]] virtual temp::Temp *ReturnValue() = 0;
 
+  [[nodiscard]] virtual temp::Temp *RAX() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RBX() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RCX() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RDX() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RSI() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RDI() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RBP() = 0;
+
+  [[nodiscard]] virtual temp::Temp *RSP() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R8() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R9() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R10() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R11() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R12() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R13() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R14() = 0;
+
+  [[nodiscard]] virtual temp::Temp *R15() = 0;   
+     
   temp::Map *temp_map_;
 protected:
   std::vector<temp::Temp *> regs_;
@@ -71,13 +103,29 @@ protected:
 class Access {
 public:
   /* TODO: Put your lab5 code here */
-  
-  virtual ~Access() = default;
-  
+    enum Kind {INFRAME, INREG};
+    Kind kind;
+    Access(Kind kind){
+      this->kind=kind;
+    } 
+    virtual ~Access() = default;
 };
 
 class Frame {
   /* TODO: Put your lab5 code here */
+  public:
+  temp::Label* name_;
+  std::list<frame::Access*> formals;
+  std::list<frame::Access*> locals;
+  tree::StmList *viewShift;
+  int offset;
+  std::list<frame::Access*> getFormals(){
+    return this->formals;
+  }
+  std::string GetLabel(){
+    return this->name_->Name();
+  }
+  virtual frame::Access *allocLocal(bool escape) = 0;
 };
 
 /**
@@ -132,7 +180,6 @@ private:
 };
 
 /* TODO: Put your lab5 code here */
-
 } // namespace frame
 
 #endif

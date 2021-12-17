@@ -84,7 +84,7 @@ public:
         break;     
       default:
       //the argument passed in frame
-        posOffset = (count-6)*frame::X64Frame::wordSize;
+        posOffset = (count-5)*frame::X64Frame::wordSize;
         //should add the size of frame in the pro3
         stm = new tree::MoveStm(dst,new tree::MemExp(
           new tree::BinopExp(tree::BinOp::PLUS_OP,new tree::TempExp(regmanager->FramePointer()),new tree::ConstExp(posOffset))

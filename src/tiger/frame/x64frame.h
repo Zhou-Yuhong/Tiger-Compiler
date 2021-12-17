@@ -134,6 +134,7 @@ public:
   temp::Temp *R14();
   temp::Temp *R15();
   temp::TempList *Registers();
+  temp::TempList *RegsWithoutRsp();
   temp::TempList *ArgRegs();
   temp::TempList *CallerSaves();  
   temp::TempList *CalleeSaves();

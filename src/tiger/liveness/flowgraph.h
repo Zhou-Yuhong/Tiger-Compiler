@@ -28,6 +28,7 @@ private:
   std::unique_ptr<tab::Table<temp::Label, FNode>> label_map_;
 };
 
+bool isJmp(FNodePtr ptr);
 } // namespace fg
 
 #endif

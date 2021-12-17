@@ -53,6 +53,6 @@ private:
   std::unique_ptr<canon::Traces> traces_;
   std::unique_ptr<AssemInstr> assem_instr_;
 };
-
+temp::TempList* makeTempList(std::vector<temp::Temp*> list);
 } // namespace cg
 #endif

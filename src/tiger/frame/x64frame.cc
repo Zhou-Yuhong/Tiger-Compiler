@@ -154,7 +154,7 @@ namespace frame {
    void X64RegManager::inputMap(temp::Temp* key,std::string val){
      std::stringstream stream;
      stream << val;
-     temp::Map::Name()->Enter(key,new std::string(stream.str()));
+     this->temp_map_->Enter(key,new std::string(stream.str()));
    }
   temp::TempList* X64RegManager::Registers(){
     temp::TempList* templist = new temp::TempList(RAX());
@@ -204,6 +204,25 @@ namespace frame {
     templist->Append(R14());
     templist->Append(R15());
     return templist;
+  }
+  temp::TempList* X64RegManager::RegsWithoutRsp(){
+    temp::TempList* templist = new temp::TempList(RAX());
+    templist->Append(RBX());
+    templist->Append(RCX());
+    templist->Append(RDX());
+    templist->Append(RSI());
+    templist->Append(RDI());
+    templist->Append(RBP());
+    templist->Append(R8());
+    templist->Append(R9());
+    templist->Append(R10());
+    templist->Append(R11());
+    templist->Append(R12());
+    templist->Append(R13());
+    templist->Append(R14());
+    templist->Append(R15());
+    return templist;
+
   }
   temp::Temp* X64RegManager::FramePointer(){
     return RBP();

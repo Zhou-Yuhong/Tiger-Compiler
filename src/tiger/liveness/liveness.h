@@ -32,7 +32,7 @@ public:
   }
   MoveList *Union(MoveList *list);
   MoveList *Intersect(MoveList *list);
-
+  MoveList *Difference(MoveList *list);
 private:
   std::list<std::pair<INodePtr, INodePtr>> move_list_;
 };
@@ -40,7 +40,7 @@ private:
 struct LiveGraph {
   IGraphPtr interf_graph;
   MoveList *moves;
-
+  LiveGraph(){}
   LiveGraph(IGraphPtr interf_graph, MoveList *moves)
       : interf_graph(interf_graph), moves(moves) {}
 };
@@ -68,6 +68,16 @@ private:
   void InterfGraph();
 };
 
+temp::TempList* Union(temp::TempList* list1,temp::TempList* list2);
+
+//the output is list1-list2
+temp::TempList* Difference(temp::TempList* list1,temp::TempList* list2);
+//judge if two templist is same
+bool IsSame(temp::TempList* list1,temp::TempList* list2);
+bool Contain(temp::TempList* list,temp::Temp* temp);
+bool IsMove(fg::FNodePtr ptr);
+assem::Instr* replace(assem::Instr* target,temp::Temp* oldTemp,temp::Temp* newTemp);
+live::INodeList* Union(live::INode* node,live::INodeList* list);
 } // namespace live
 
 #endif

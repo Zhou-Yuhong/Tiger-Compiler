@@ -46,6 +46,8 @@ public:
    */
   [[nodiscard]] virtual temp::TempList *CalleeSaves() = 0;
 
+   [[nodiscard]] virtual temp::TempList *RegsWithoutRsp() = 0;
+
   /**
    * Get return-sink registers
    * @return return-sink registers

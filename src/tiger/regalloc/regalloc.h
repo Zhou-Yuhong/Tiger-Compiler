@@ -32,7 +32,7 @@ public:
   RegAllocator(frame::Frame* frame_,std::unique_ptr<cg::AssemInstr> ptr);
   void RegAlloc();
   std::unique_ptr<ra::Result> TransferResult();
-
+  assem::InstrList* RemoveMoveInstr(assem::InstrList* instrlist,temp::Map *color);
 private:
   col::Color* colorManager;
   frame::Frame* frame_;

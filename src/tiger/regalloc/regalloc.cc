@@ -18,6 +18,20 @@ void RegAllocator::RegAlloc(){
 }
 std::unique_ptr<ra::Result> RegAllocator::TransferResult(){
     //return Result(this->colorManager->AssignRegisters(),this->colorManager->getInstrList());
-    return std::make_unique<ra::Result>(this->colorManager->AssignRegisters(),this->colorManager->getInstrList());
+    assem::InstrList* final = this->RemoveMoveInstr(this->colorManager->getInstrList(),this->colorManager->AssignRegisters());
+    return std::make_unique<ra::Result>(this->colorManager->AssignRegisters(),final);
+}
+assem::InstrList* RegAllocator::RemoveMoveInstr(assem::InstrList* instrlist,temp::Map *color){
+    assem::InstrList* newlist=new assem::InstrList();
+    for(auto it:instrlist->GetList()){
+        if(typeid(*it)==typeid(assem::MoveInstr)){
+            assem::MoveInstr* moveInstr = (assem::MoveInstr*)it;
+            if(color->Look(moveInstr->src_->NthTemp(0))== color->Look(moveInstr->dst_->NthTemp(0))){
+                continue;
+            }
+        }
+        newlist->Append(it);
+    }
+    return newlist;
 }
 } // namespace ra

@@ -83,6 +83,8 @@ assem::Instr* replace(assem::Instr* target,temp::Temp* oldTemp,temp::Temp* newTe
   }
 }
 temp::TempList* Union(temp::TempList* list1,temp::TempList* list2){
+  if(!list1 || list1->GetList().empty()) return list2;
+  if(!list2 || list2->GetList().empty()) return list1;
   temp::TempList *unionList = new temp::TempList();
   std::list<temp::Temp*> tempList1 = list1->GetList();
   std::list<temp::Temp*> tempList2 = list2->GetList();
@@ -105,8 +107,15 @@ live::INodeList* Union(live::INode* node,live::INodeList* list){
   return res;
 }
 
-
+bool IsEmpty(temp::TempList* list){
+  if(!list) return true;
+  if(list->GetList().empty()) return true;
+  return false;
+}
 bool IsSame(temp::TempList* list1,temp::TempList* list2){
+  if(IsEmpty(list1)&&IsEmpty(list2)) return true;
+  if(IsEmpty(list1)&&!IsEmpty(list2)) return false;
+  if(!IsEmpty(list1)&&IsEmpty(list2)) return false;
   std::list<temp::Temp*> tempList1=list1->GetList();
   std::list<temp::Temp*> tempList2=list2->GetList();
   for(auto it:tempList1){
@@ -118,6 +127,8 @@ bool IsSame(temp::TempList* list1,temp::TempList* list2){
   return true;
 }
 temp::TempList* Difference(temp::TempList* list1,temp::TempList* list2){
+  if(!list1) return nullptr;
+  if(!list2) return list1;
   temp::TempList *diff = new temp::TempList();
   std::list<temp::Temp*> tempList1 = list1->GetList();
   for(auto it:tempList1){
@@ -243,8 +254,9 @@ void LiveGraphFactory::InterfGraph() {
   std::list<fg::FNodePtr> Nodelist=this->flowgraph_->Nodes()->GetList();
   //form the edge between the def and out,first should add nodes 
   for(auto it:Nodelist){
-    std::list<temp::Temp*> templist = Union(out_.get()->Look(it),it->NodeInfo()->Def())->GetList();
-    for(auto that:templist){
+    temp::TempList* templist = Union(out_.get()->Look(it),it->NodeInfo()->Def());
+    if(!templist) continue;
+    for(auto that:templist->GetList()){
       if(that==reg_manager->StackPointer()) continue;
       if(!this->temp_node_map_->Look(that)){
         live::INodePtr ptr = this->live_graph_.interf_graph->NewNode(that);
@@ -255,8 +267,10 @@ void LiveGraphFactory::InterfGraph() {
   //add edge and handle the move instr
   for(auto it:Nodelist){
     if(!IsMove(it)){
-      std::list<temp::Temp*> defList=it->NodeInfo()->Def()->GetList();
-      for(auto def:defList){
+      temp::TempList* defList = it->NodeInfo()->Def();
+      if(!defList) continue;
+      //std::list<temp::Temp*> defList=it->NodeInfo()->Def()->GetList();
+      for(auto def:defList->GetList()){
         std::list<temp::Temp*> outList=out_.get()->Look(it)->GetList();
         for(auto out:outList){
           if(def == reg_manager->StackPointer()||out == reg_manager->StackPointer())
@@ -277,6 +291,7 @@ void LiveGraphFactory::InterfGraph() {
       std::list<temp::Temp*> defList=it->NodeInfo()->Def()->GetList();
       for(auto def:defList){
         temp::TempList* outList=Difference(out_.get()->Look(it),it->NodeInfo()->Use());
+        if(!outList) continue;
         for(auto out:outList->GetList()){
           if(def==reg_manager->StackPointer()||out == reg_manager->StackPointer())
           continue;

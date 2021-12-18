@@ -74,6 +74,7 @@ temp::TempList* Union(temp::TempList* list1,temp::TempList* list2);
 temp::TempList* Difference(temp::TempList* list1,temp::TempList* list2);
 //judge if two templist is same
 bool IsSame(temp::TempList* list1,temp::TempList* list2);
+bool IsEmpty(temp::TempList* list);
 bool Contain(temp::TempList* list,temp::Temp* temp);
 bool IsMove(fg::FNodePtr ptr);
 assem::Instr* replace(assem::Instr* target,temp::Temp* oldTemp,temp::Temp* newTemp);

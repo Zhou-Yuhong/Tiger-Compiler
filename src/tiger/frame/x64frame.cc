@@ -1,5 +1,6 @@
 #include "tiger/frame/x64frame.h"
 #include <sstream>
+#include <vector>
 extern frame::RegManager *reg_manager;
 
 namespace frame {
@@ -275,6 +276,18 @@ tree::Stm* F_procEntryExit1(frame::Frame *frame,tree::Stm* stm){
     result = new tree::SeqStm(result,stm);
   }
   return result;
+}
+assem::InstrList* F_procEntryExit2(assem::InstrList *body){
+  std::vector<temp::Temp> srcvec;
+  temp::TempList* srcs = new temp::TempList();
+  srcs->Append(reg_manager->StackPointer());
+  srcs->Append(reg_manager->ReturnValue());
+  // srcvec.push_back(reg_manager->StackPointer());
+  // srcvec.push_back(reg_manager->ReturnValue());
+  body->Append(new assem::OperInstr(
+    "",nullptr,srcs,nullptr
+  ));
+  return body;
 }
 assem::Proc* ProcEntryExit3(frame::Frame *frame_,assem::InstrList *body){
   std::string prologue = frame_->name_->Name()+":\n";

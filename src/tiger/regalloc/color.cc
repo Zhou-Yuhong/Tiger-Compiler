@@ -144,6 +144,7 @@ void Color::Simplify(){
     if(nodelist.empty()) return;
     live::INode* node=nodelist.front();
     selectStack.push(node);
+    this->simplifyWorklist->DeleteNode(node);
     for(auto it:node->Succ()->GetList()){
         DecrementDegree(it);
     }
@@ -285,13 +286,13 @@ void Color::AssignColors(){
     tab::Table<std::string,bool> okColors;
     temp::TempList* regsWithoutRsp=reg_manager->RegsWithoutRsp();
     for(auto it:regsWithoutRsp->GetList()){
-        okColors.Enter(temp::Map::Name()->Look(it),new bool(true));
+        okColors.Enter(reg_manager->temp_map_->Look(it),new bool(true));
     }
     while(!selectStack.empty()){
         live::INode* n = this->selectStack.top();
         this->selectStack.pop();
         for(auto it:regsWithoutRsp->GetList()){
-            okColors.Set(temp::Map::Name()->Look(it),new bool(true));
+            okColors.Set(reg_manager->temp_map_->Look(it),new bool(true));
         }
         for(auto it:n->Succ()->GetList()){
             if(colorTable->Look(GetAlias(it))){
@@ -312,7 +313,7 @@ void Color::AssignColors(){
         }
         if(remainColor){
             coloredNodes->Append(n);
-            colorTable->Set(n,temp::Map::Name()->Look(color));
+            colorTable->Set(n,reg_manager->temp_map_->Look(color));
         }else{
             spilledNodes->Append(n);
         }
@@ -348,7 +349,7 @@ void Color::RewriteProgram(){
               std::stringstream stream;
               stream << "movq ("<<this->frame_->name_->Name()<<"_framesize"<<this->frame_->offset<<")(`s0), `d0";
               std::string str = stream.str();
-              stream.str(0);
+              stream.str("");
               dstvec.push_back(newtemp);
               srcvec.push_back(reg_manager->StackPointer());
               newInslist->Append(new assem::OperInstr(
@@ -363,7 +364,7 @@ void Color::RewriteProgram(){
               //add the store instr
               stream << "movq `s0, ("<<this->frame_->name_->Name()<<"_framesize"<<this->frame_->offset<<")(`s1)";
               str = stream.str();
-              stream.str(0);
+              stream.str("");
               srcvec.push_back(newtemp);
               srcvec.push_back(reg_manager->StackPointer());
               newInslist->Append(new assem::OperInstr(
@@ -377,7 +378,7 @@ void Color::RewriteProgram(){
               std::stringstream stream;
               stream << "movq ("<<this->frame_->name_->Name()<<"_framesize"<<this->frame_->offset<<")(`s0), `d0";
               std::string str = stream.str();
-              stream.str(0);
+              stream.str("");
               dstvec.push_back(newtemp);
               srcvec.push_back(reg_manager->StackPointer());
               newInslist->Append(new assem::OperInstr(
@@ -401,7 +402,7 @@ void Color::RewriteProgram(){
               //add the store instr
               stream << "movq `s0, ("<<this->frame_->name_->Name()<<"_framesize"<<this->frame_->offset<<")(`s1)";
               std::string str = stream.str();
-              stream.str(0);
+              stream.str("");
               srcvec.push_back(newtemp);
               srcvec.push_back(reg_manager->StackPointer());
               newInslist->Append(new assem::OperInstr(

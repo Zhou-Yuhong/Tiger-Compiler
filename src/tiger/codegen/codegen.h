@@ -54,5 +54,8 @@ private:
   std::unique_ptr<AssemInstr> assem_instr_;
 };
 temp::TempList* makeTempList(std::vector<temp::Temp*> list);
+temp::TempList* makeSingleTempList(temp::Temp* item);
+void saveCalleeRegs(assem::InstrList* instrlist);
+void restoreCalleeRegs(assem::InstrList* instrlist);
 } // namespace cg
 #endif

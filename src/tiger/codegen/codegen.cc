@@ -15,6 +15,59 @@ constexpr int maxlen = 1024;
 
 namespace cg {
 
+temp::Temp *rbxsaved, *rbpsaved, *r12saved, *r13saved, *r14saved, *r15saved; 
+
+void saveCalleeRegs(assem::InstrList* instrlist){
+  rbxsaved = temp::TempFactory::NewTemp();
+  rbpsaved = temp::TempFactory::NewTemp();
+  r12saved = temp::TempFactory::NewTemp();
+  r13saved = temp::TempFactory::NewTemp();
+  r14saved = temp::TempFactory::NewTemp();
+  r15saved = temp::TempFactory::NewTemp();
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(rbxsaved),makeSingleTempList(reg_manager->RBX())
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(rbpsaved),makeSingleTempList(reg_manager->RBP())
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(r12saved),makeSingleTempList(reg_manager->R12())
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(r13saved),makeSingleTempList(reg_manager->R13())
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(r14saved),makeSingleTempList(reg_manager->R14())
+  ));   
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(r15saved),makeSingleTempList(reg_manager->R15())
+  ));  
+}
+void restoreCalleeRegs(assem::InstrList* instrlist){
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->RBX()),makeSingleTempList(rbxsaved)
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->RBP()),makeSingleTempList(rbpsaved)
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->R12()),makeSingleTempList(r12saved)
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->R13()),makeSingleTempList(r13saved)
+  ));
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->R14()),makeSingleTempList(r14saved)
+  ));   
+  instrlist->Append(new assem::MoveInstr(
+    "movq `s0, `d0",makeSingleTempList(reg_manager->R15()),makeSingleTempList(r15saved)
+  ));  
+}
+temp::TempList* makeSingleTempList(temp::Temp* item){
+  temp::TempList* result = new temp::TempList();
+  result->Append(item);
+  return result;
+}
 temp::TempList* makeTempList(std::vector<temp::Temp*> list){
   temp::TempList* result = new temp::TempList();
   for(auto it:list){
@@ -26,10 +79,13 @@ void CodeGen::Codegen() {
   /* TODO: Put your lab5 code here */
   fs_=frame_->name_->Name()+"_framesize";
   assem::InstrList* inslist = new assem::InstrList();
+  saveCalleeRegs(inslist);
   std::list<tree::Stm *> stms=traces_->GetStmList()->GetList();
   for(auto it:stms){
     it->Munch(*inslist,fs_);
   }
+  restoreCalleeRegs(inslist);
+  inslist = frame::F_procEntryExit2(inslist);
   this->assem_instr_=std::make_unique<cg::AssemInstr>(inslist);
 }
 
@@ -354,7 +410,7 @@ temp::Temp *CallExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
   temp::TempList* arglist=this->args_->MunchArgs(instr_list,fs);
   std::string assemStr = "callq "+((tree::NameExp*)this->fun_)->name_->Name();
   assem::OperInstr *oper=new assem::OperInstr(
-      assemStr,nullptr,arglist,nullptr
+      assemStr,reg_manager->CallerSaves(),arglist,nullptr
     );
   instr_list.Append(oper);
   std::vector<temp::Temp*> srcs;

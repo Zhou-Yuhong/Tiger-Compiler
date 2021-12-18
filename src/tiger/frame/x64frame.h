@@ -17,6 +17,7 @@ public:
 };
 tree::Exp* externalCall(std::string s,tree::ExpList* explist);
 tree::Stm* F_procEntryExit1(frame::Frame *frame,tree::Stm* stm);
+assem::InstrList* F_procEntryExit2(assem::InstrList *body);
 assem::Proc* ProcEntryExit3(frame::Frame *frame_,assem::InstrList *body);
 class InRegAccess : public Access {
 public:

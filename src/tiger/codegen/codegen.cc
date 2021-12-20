@@ -256,38 +256,52 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
     instr_list.Append(operInstr);
     break;
   case tree::MUL_OP:
-   dsts.push_back(reg_manager->RAX());
-    srcs.push_back(left);
     instr_list.Append(
       new assem::MoveInstr(
-        "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
+        "movq `s0, `d0",cg::makeSingleTempList(reg),cg::makeSingleTempList(left)
       )
     );
-    dsts.clear();
-    srcs.clear();
-    instr_list.Append(
-      new assem::OperInstr(
-        "cqto",nullptr,nullptr,nullptr
-      )
-    );
-    dsts.push_back(reg_manager->RAX());
     srcs.push_back(right);
+    srcs.push_back(reg);
     instr_list.Append(
       new assem::OperInstr(
-        "imulq `s0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
+        "imulq `s0, `d0",cg::makeSingleTempList(reg),cg::makeTempList(srcs),nullptr
       )
     );
-    dsts.clear();
     srcs.clear();
-    //store the result
-    dsts.push_back(reg);
-    srcs.push_back(reg_manager->RAX());
-    instr_list.Append(
-      new assem::MoveInstr(
-        "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
-      )
-    );
     break;
+  //  dsts.push_back(reg_manager->RAX());
+  //   srcs.push_back(left);
+  //   instr_list.Append(
+  //     new assem::MoveInstr(
+  //       "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
+  //     )
+  //   );
+  //   dsts.clear();
+  //   srcs.clear();
+  //   instr_list.Append(
+  //     new assem::OperInstr(
+  //       "cqto",nullptr,nullptr,nullptr
+  //     )
+  //   );
+  //   dsts.push_back(reg_manager->RAX());
+  //   srcs.push_back(right);
+  //   instr_list.Append(
+  //     new assem::OperInstr(
+  //       "imulq `s0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
+  //     )
+  //   );
+  //   dsts.clear();
+  //   srcs.clear();
+  //   //store the result
+  //   dsts.push_back(reg);
+  //   srcs.push_back(reg_manager->RAX());
+  //   instr_list.Append(
+  //     new assem::MoveInstr(
+  //       "movq `s0, `d0",cg::makeTempList(dsts),cg::makeTempList(srcs)
+  //     )
+  //   );
+  //   break;
   case tree::DIV_OP:
     //special 
     //first move the dividend into rax
@@ -300,13 +314,26 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
     );
     dsts.clear();
     srcs.clear();
+    dsts.push_back(reg_manager->RAX());
+    dsts.push_back(reg_manager->RDX());
+    srcs.push_back(reg_manager->RAX());
     instr_list.Append(
       new assem::OperInstr(
-        "cqto",nullptr,nullptr,nullptr
+        "cltd",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
       )
     );
+    dsts.clear();
+    srcs.clear();
+    // instr_list.Append(
+    //   new assem::OperInstr(
+    //     "cqto",nullptr,nullptr,nullptr
+    //   )
+    // );
     dsts.push_back(reg_manager->RAX());
+    dsts.push_back(reg_manager->RDX());
     srcs.push_back(right);
+    srcs.push_back(reg_manager->RAX());
+    srcs.push_back(reg_manager->RDX());
     instr_list.Append(
       new assem::OperInstr(
         "idivq `s0",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr

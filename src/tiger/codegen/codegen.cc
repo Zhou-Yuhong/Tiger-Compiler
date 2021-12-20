@@ -319,7 +319,7 @@ temp::Temp *BinopExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
     srcs.push_back(reg_manager->RAX());
     instr_list.Append(
       new assem::OperInstr(
-        "cltd",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
+        "cqto",cg::makeTempList(dsts),cg::makeTempList(srcs),nullptr
       )
     );
     dsts.clear();
